@@ -2,18 +2,24 @@ import io
 import re
 import tempfile
 import unittest
+import os
+from unittest.mock import patch
 
 from PIL import Image
 from flask import g
 from werkzeug.security import generate_password_hash
 
-from app import Animal, PRINCIPAL_EMAIL, Story, User, create_app, db, migrate_animal_fields, migrate_story_fields, adoption_ranking
+with patch.dict(os.environ, {'PYTHON_DOTENV_DISABLED': '1', 'DATABASE_URL': 'sqlite://',
+                             'SECRET_KEY': 'test-only-key-not-for-production',
+                             'RENDER': 'false', 'CLOUDINARY_URL': ''}):
+    from app import Animal, PRINCIPAL_EMAIL, Story, User, create_app, db, migrate_animal_fields, migrate_story_fields, adoption_ranking
 
 
 class AppTests(unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory()
         self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite://',
+                               'RENDER': False, 'CLOUDINARY_URL': None,
                                'WTF_CSRF_ENABLED': False, 'RATELIMIT_ENABLED': False,
                                'UPLOAD_FOLDER': self.folder.name})
         self.context = self.app.app_context()
@@ -240,6 +246,7 @@ class AppTests(unittest.TestCase):
 
     def test_public_rate_limit(self):
         app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite://',
+                          'RENDER': False, 'CLOUDINARY_URL': None,
                           'WTF_CSRF_ENABLED': False, 'RATELIMIT_ENABLED': True,
                           'RATELIMIT_STORAGE_URI': 'memory://', 'UPLOAD_FOLDER': self.folder.name})
         with app.app_context():

@@ -1,27 +1,67 @@
 import os
 import secrets
 import warnings
+import re
+from io import BytesIO
+from urllib.parse import urlsplit, unquote
 from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
 
 import click
+import cloudinary.uploader
+import cloudinary.utils
 from dotenv import load_dotenv
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask import Flask, abort, current_app, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from PIL import Image, ImageOps, UnidentifiedImageError
-from sqlalchemy import inspect, select
+from sqlalchemy import inspect, select, true, false
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-load_dotenv()
+if os.environ.get('PYTHON_DOTENV_DISABLED') != '1':
+    load_dotenv()
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+
+def normalize_database_url(value):
+    for prefix in ('postgres://', 'postgresql://'):
+        if value.startswith(prefix):
+            return 'postgresql+psycopg://' + value[len(prefix):]
+    return value
+
+def cloudinary_options(value):
+    if not value:
+        return None
+    try:
+        parsed = urlsplit(value)
+        if (parsed.scheme != 'cloudinary' or not parsed.username or not parsed.password
+                or not parsed.hostname or parsed.path not in ('', '/') or parsed.query
+                or parsed.fragment or parsed.port
+                or not re.fullmatch(r'[A-Za-z0-9_-]+', parsed.hostname)):
+            raise ValueError
+        return dict(cloud_name=parsed.hostname, api_key=unquote(parsed.username),
+                    api_secret=unquote(parsed.password), secure=True)
+    except (ValueError, TypeError):
+        raise RuntimeError('CLOUDINARY_URL invalida; confira a configuracao privada.') from None
+
+def photo_url(photo):
+    if photo and photo.startswith('cloudinary:'):
+        public_id = photo[len('cloudinary:'):]
+        options = current_app.extensions.get('cloudinary_options')
+        if options and re.fullmatch(r'ogle/[a-f0-9]{32}', public_id):
+            return cloudinary.utils.cloudinary_url(
+                public_id, resource_type='image', type='upload', format='jpg',
+                cloud_name=options['cloud_name'], secure=True,
+                private_cdn=False, secure_distribution=None, cname=None,
+                sign_url=False, url_suffix=None)[0]
+        return url_for('static', filename='placeholder.svg')
+    return url_for('static', filename='uploads/' + photo if photo else 'placeholder.svg')
 
 
 def migrate_animal_fields():
@@ -46,8 +86,8 @@ def migrate_story_fields():
         additions = {
             'pet_name': 'VARCHAR(100)',
             'source': "VARCHAR(10) NOT NULL DEFAULT 'admin'",
-            'approved': 'BOOLEAN NOT NULL DEFAULT 1',
-            'adoption_confirmed': 'BOOLEAN NOT NULL DEFAULT 0',
+            'approved': 'BOOLEAN NOT NULL DEFAULT TRUE',
+            'adoption_confirmed': 'BOOLEAN NOT NULL DEFAULT FALSE',
         }
         for name, definition in additions.items():
             if name not in columns:
@@ -122,8 +162,8 @@ class Story(db.Model):
     photo = db.Column(db.String(80))
     pet_name = db.Column(db.String(100), nullable=True)
     source = db.Column(db.String(10), nullable=False, default='admin', server_default='admin')
-    approved = db.Column(db.Boolean, nullable=False, default=True, server_default='1')
-    adoption_confirmed = db.Column(db.Boolean, nullable=False, default=False, server_default='0')
+    approved = db.Column(db.Boolean, nullable=False, default=True, server_default=true())
+    adoption_confirmed = db.Column(db.Boolean, nullable=False, default=False, server_default=false())
 
 
 @login_manager.user_loader
@@ -133,19 +173,12 @@ def load_user(user_id):
 
 def create_app(test_config=None):
     app = Flask(__name__)
-    Path(app.instance_path).mkdir(exist_ok=True)
-    secret_path = Path(app.instance_path) / 'secret.key'
-    secret = os.environ.get('SECRET_KEY')
-    if not secret:
-        try:
-            with secret_path.open('x') as file:
-                file.write(secrets.token_hex(32))
-        except FileExistsError:
-            pass
-        secret = secret_path.read_text().strip()
     app.config.update(
-        SECRET_KEY=secret,
+        SECRET_KEY=os.environ.get('SECRET_KEY'),
+        RENDER=os.environ.get('RENDER', '').lower() == 'true',
+        CLOUDINARY_URL=os.environ.get('CLOUDINARY_URL'),
         SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///ogle.db'),
+        SQLALCHEMY_ENGINE_OPTIONS={'pool_pre_ping': True},
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         MAX_CONTENT_LENGTH=6 * 1024 * 1024,
         SESSION_COOKIE_HTTPONLY=True,
@@ -157,6 +190,28 @@ def create_app(test_config=None):
     )
     if test_config:
         app.config.update(test_config)
+    app.config['SQLALCHEMY_DATABASE_URI'] = normalize_database_url(app.config['SQLALCHEMY_DATABASE_URI'])
+    if app.config['RENDER']:
+        if not app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql+psycopg://'):
+            raise RuntimeError('Render exige DATABASE_URL PostgreSQL.')
+        if not app.config['CLOUDINARY_URL']:
+            raise RuntimeError('Render exige CLOUDINARY_URL.')
+        if not app.config['SECRET_KEY'] or len(app.config['SECRET_KEY']) < 32:
+            raise RuntimeError('Render exige SECRET_KEY estavel com pelo menos 32 caracteres.')
+    app.extensions['cloudinary_options'] = cloudinary_options(app.config['CLOUDINARY_URL'])
+    if not app.config['SECRET_KEY']:
+        if app.config['TESTING']:
+            app.config['SECRET_KEY'] = secrets.token_hex(32)
+        else:
+            Path(app.instance_path).mkdir(exist_ok=True)
+            secret_path = Path(app.instance_path) / 'secret.key'
+            try:
+                with secret_path.open('x') as file:
+                    file.write(secrets.token_hex(32))
+            except FileExistsError:
+                pass
+            app.config['SECRET_KEY'] = secret_path.read_text().strip()
+    app.jinja_env.globals['photo_url'] = photo_url
     db.init_app(app)
     with app.app_context():
         migrate_animal_fields()
@@ -211,13 +266,37 @@ def create_app(test_config=None):
                         raise ValueError('Use uma imagem JPG, PNG ou WebP.')
                     image = ImageOps.exif_transpose(image).convert('RGB')
                     image.thumbnail((1600, 1600))
-                    folder = Path(app.config['UPLOAD_FOLDER'])
-                    folder.mkdir(parents=True, exist_ok=True)
-                    filename = f'{uuid4().hex}.jpg'
-                    image.save(folder / filename, 'JPEG', quality=85)
-                    return filename
+                    output = BytesIO()
+                    # A fresh image drops EXIF, ICC and other source metadata.
+                    clean = Image.new('RGB', image.size)
+                    clean.paste(image)
+                    clean.save(output, 'JPEG', quality=85)
         except (UnidentifiedImageError, OSError, Image.DecompressionBombError, Image.DecompressionBombWarning):
             raise ValueError('Imagem inválida ou grande demais.') from None
+        identifier = uuid4().hex
+        options = app.extensions['cloudinary_options']
+        if options:
+            try:
+                output.seek(0)
+                result = cloudinary.uploader.upload(
+                    output, folder='ogle', public_id=identifier, resource_type='image',
+                    type='upload', format='jpg', overwrite=False, unique_filename=False,
+                    use_filename=False, timeout=30, **options)
+                if (result.get('public_id') != f'ogle/{identifier}'
+                        or result.get('resource_type') != 'image'
+                        or result.get('format') != 'jpg'):
+                    raise ValueError('Unexpected upload response')
+                return f'cloudinary:ogle/{identifier}'
+            except Exception:
+                raise ValueError('Nao foi possivel enviar a foto. Tente novamente mais tarde.') from None
+        folder = Path(app.config['UPLOAD_FOLDER'])
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+            filename = f'{identifier}.jpg'
+            (folder / filename).write_bytes(output.getvalue())
+            return filename
+        except OSError:
+            raise ValueError('Nao foi possivel salvar a foto. Tente novamente mais tarde.') from None
 
     @app.route('/')
     def home():
