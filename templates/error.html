@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}Erro {{ code }}{% endblock %}
+{% block content %}
+<section class="container error-page section"><p class="eyebrow">Erro {{ code }}</p><h1>Vamos encontrar<br><em>outro caminho?</em></h1><p class="lead">{{ message }}</p><div class="button-row"><a class="button" href="{{ url_for('home') }}">Voltar ao início ↗</a><a class="text-link" href="mailto:{{ public_email }}">Fale com a equipe</a></div></section>
+{% endblock %}

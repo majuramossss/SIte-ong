@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="900" viewBox="0 0 800 900" role="img" aria-labelledby="title desc">
+  <title id="title">Ilustração de um gato</title>
+  <desc id="desc">Gato coral sentado entre folhas verdes em um cenário creme. Ilustração, não é uma fotografia de animal disponível.</desc>
+  <defs>
+    <pattern id="grain" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r="1" fill="#183e32" opacity=".045"/><circle cx="14" cy="17" r=".8" fill="#183e32" opacity=".05"/></pattern>
+    <linearGradient id="arch" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e1b87b"/><stop offset="1" stop-color="#eed8b8"/></linearGradient>
+  </defs>
+  <path fill="#eee5d5" d="M0 0h800v900H0z"/>
+  <path d="M100 765V347a300 300 0 0 1 600 0v418z" fill="url(#arch)"/>
+  <circle cx="561" cy="235" r="87" fill="#fff1c9"/>
+  <path d="M0 747q220-65 401 0t399-15v168H0z" fill="#c3c5a7"/>
+  <ellipse cx="409" cy="773" rx="222" ry="31" fill="#183e32" opacity=".13"/>
+  <g fill="none" stroke="#315544" stroke-width="8" stroke-linecap="round"><path d="M136 798Q93 624 151 454"/><path d="M643 804q88-212 25-416"/></g>
+  <g fill="#315544"><path d="M126 672q-121-14-89-113 96 21 89 113M130 612q114-37 75-111-80 29-75 111M142 521q-82-15-60-89 78 25 60 89M665 612q-116-12-110-105 99 10 110 105M678 548q101-38 70-115-85 27-70 115M665 450q-79-34-52-99 72 16 52 99"/></g>
+  <g fill="#6d8264"><path d="M122 739Q0 755 28 648q94 0 94 91M662 709q133-9 99-115-104 30-99 115M654 758q-127-4-110-100 101 19 110 100"/></g>
+  <path d="M534 747q158 10 111-137-18-44-42-14-9 13 4 48 22 62-75 47" fill="none" stroke="#bd5a3f" stroke-width="49" stroke-linecap="round"/>
+  <path d="M267 744q-32-111 18-215 42-86 125-72 109-8 144 124 20 92-9 167z" fill="#ce7353"/>
+  <path d="m269 398-9-160 113 81q42-13 84 0l98-88-3 166q-3 123-140 125-135 1-143-124" fill="#dc8866"/>
+  <path d="m280 281 9 78 49-25zM528 278l-47 54 49 24z" fill="#bd5a3f"/>
+  <path d="M381 322q20 44 9 68M418 319q14 29 6 56M452 328q1 25-8 38" fill="none" stroke="#b55c44" stroke-width="12" stroke-linecap="round"/>
+  <path d="M310 405q22-23 45 0M460 405q22-23 45 0" fill="none" stroke="#253c31" stroke-width="8" stroke-linecap="round"/>
+  <path d="m393 433 29 0-15 17z" fill="#253c31"/><path d="M407 448v11m0-1q-16 15-27 1m27-1q16 15 27 1" fill="none" stroke="#253c31" stroke-width="5" stroke-linecap="round"/>
+  <g stroke="#654d3e" stroke-width="4" stroke-linecap="round"><path d="m330 446-93-16m94 34-100 10m250-28 93-17m-94 35 99 9"/></g>
+  <path d="M360 531q42 30 84 0l22 180h-126z" fill="#f3d6ad"/>
+  <path d="M321 629v114q-35 21-7 31h73l-5-144M476 629v114q35 21 7 31h-73l5-144" fill="#dc8866" stroke="#b55c44" stroke-width="5" stroke-linejoin="round"/>
+  <path fill="url(#grain)" d="M0 0h800v900H0z"/>
+  <rect x="281" y="822" width="238" height="42" rx="21" fill="#f8f3e9"/>
+  <text x="400" y="849" text-anchor="middle" font-family="Verdana,sans-serif" font-size="16" letter-spacing="3" fill="#183e32">ILUSTRAÇÃO</text>
+</svg>
