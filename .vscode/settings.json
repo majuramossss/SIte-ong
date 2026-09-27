@@ -1,0 +1,4 @@
+{
+    "9router-for-github-copilot.serverUrl": "http://localhost:20128/v1",
+    "python-envs.defaultEnvManager": "ms-python.python:system"
+}

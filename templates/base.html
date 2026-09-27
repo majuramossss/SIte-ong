@@ -1,4 +1,10 @@
 {% set public_email = 'oglemt29@gmail.com' %}
+{% macro seta_icone() -%}
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="seta-icone me-1" aria-hidden="true" focusable="false">
+  <line x1="7" y1="17" x2="17" y2="7"></line>
+  <polyline points="7 7 17 7 17 17"></polyline>
+</svg>
+{%- endmacro %}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -19,7 +25,7 @@
         <a href="{{ url_for('sobre') }}" {% if request.endpoint == 'sobre' %}aria-current="page"{% endif %}>Sobre nós</a>
         <a href="{{ url_for('adotar') }}" {% if request.endpoint in ['adotar', 'detalhe_animal'] %}aria-current="page"{% endif %}>Adote um gato</a>
         <a href="{{ url_for('depoimentos') }}" {% if request.endpoint == 'depoimentos' %}aria-current="page"{% endif %}>Histórias</a>
-        <a class="button button-small" href="{{ url_for('doar') }}" {% if request.endpoint == 'doar' %}aria-current="page"{% endif %}>Quero ajudar <span aria-hidden="true">↗</span></a>
+        <a class="button button-small" href="{{ url_for('doar') }}" {% if request.endpoint == 'doar' %}aria-current="page"{% endif %}>Quero ajudar {{ seta_icone() }}</a>
         {% if current_user.is_authenticated %}
           <a href="{{ url_for('admin') }}">Painel</a>
           <form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="text-button" type="submit">Sair</button></form>
