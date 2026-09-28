@@ -13,13 +13,21 @@
   <meta name="theme-color" content="#183e32">
   <title>{% block title %}Início{% endblock %} · {{ official_name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .site-header .brand { display: flex; align-items: center; gap: .65rem; }
+    .site-header .brand-logo { width: 45px; height: 45px; max-width: none; flex: 0 0 45px; border-radius: 50%; object-fit: cover; display: block; }
+    .site-header .brand-name { min-width: 0; }
+  </style>
   <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="{{ url_for('home') }}"><span class="brand-icon" aria-hidden="true">♧</span><span>{{ official_name }}<small>Uma nova chance. Um novo lar.</small></span></a>
+      <a class="brand" href="{{ url_for('home') }}">
+        <img class="brand-logo" src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Logo do Orfanato Gataria da LuEdu MT" width="45" height="45">
+        <span class="brand-name">OGLE MT<small>Uma nova chance. Um novo lar.</small></span>
+      </a>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal" hidden>Menu <span aria-hidden="true">☰</span></button>
       <nav id="menu-principal" class="main-nav" aria-label="Navegação principal">
         <a href="{{ url_for('sobre') }}" {% if request.endpoint == 'sobre' %}aria-current="page"{% endif %}>Sobre nós</a>
