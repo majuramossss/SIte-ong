@@ -1,4 +1,5 @@
 {% set public_email = 'oglemt29@gmail.com' %}
+{% set public_whatsapp = 'https://wa.me/5565993637766?text=Ol%C3%A1!%20Gostaria%20de%20falar%20com%20a%20equipe%20da%20OGLE%20MT.' %}
 {% macro seta_icone() -%}
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="seta-icone me-1" aria-hidden="true" focusable="false">
   <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -52,7 +53,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div><a class="footer-brand" href="{{ url_for('home') }}">{{ official_name }}</a><p>Cuiabá-MT</p><p>Cuidar transforma vidas.<br>Inclusive a sua.</p></div>
-      <div><h2>Vamos conversar?</h2><a class="email-link" href="mailto:{{ public_email }}">{{ public_email }}</a><p><a href="https://wa.me/5565993637766" target="_blank" rel="noopener noreferrer">WhatsApp: (65) 9 9363-7766 <span class="sr-only">(abre em nova aba)</span></a></p><p><a href="https://www.instagram.com/gatariadaluedumt" target="_blank" rel="noopener noreferrer">Instagram: @gatariadaluedumt <span class="sr-only">(abre em nova aba)</span></a></p></div>
+      <div><h2>Vamos conversar?</h2><a class="email-link" href="mailto:{{ public_email }}">E-mail: {{ public_email }}</a><p><a href="{{ public_whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp: (65) 9 9363-7766 <span class="sr-only">(abre em nova aba)</span></a></p><p><a href="https://www.instagram.com/gatariadaluedumt" target="_blank" rel="noopener noreferrer">Instagram: @gatariadaluedumt <span class="sr-only">(abre em nova aba)</span></a></p></div>
       <nav aria-label="Links do rodapé"><a href="{{ url_for('sobre') }}">Conheça o abrigo</a><a href="{{ url_for('doar') }}">Apoie o cuidado</a><a href="{{ url_for('login') }}">Área administrativa</a></nav>
     </div>
     <div class="container footer-bottom"><span>Adoção responsável, para a vida inteira.</span><span>Ilustrações são simbólicas. Cada gato é único.</span></div>
